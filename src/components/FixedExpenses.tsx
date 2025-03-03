@@ -1,123 +1,128 @@
 import React, { useState } from 'react';
 import { useBudget } from '../hooks/useBudget';
-import { Category } from '../types';
+import type { Category, FixedExpense } from '../types/index';
 
-const FixedExpenses: React.FC = () => {
-  const { fixedExpenses, addFixedExpense, removeFixedExpense } = useBudget();
-  const [newExpense, setNewExpense] = useState({
-    label: '',
-    amount: 0,
-    category: 'Vie quotidienne' as Category
-  });
+const FixedExpenses = () => {
+  const { fixedExpenses, addFixedExpense, deleteFixedExpense } = useBudget();
+  const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState<Category>('Vie quotidienne');
+  const [label, setLabel] = useState('');
+
+  const categories: Category[] = [
+    "Abonnements & téléphonie",
+    "Auto",
+    "Autres dépenses",
+    "Cadeaux & solidarité",
+    "Éducation & famille",
+    "Impôts & taxes",
+    "Logement",
+    "Loisirs & sorties",
+    "Retrait cash",
+    "Santé",
+    "Services financiers & professionnels",
+    "Vie quotidienne",
+    "Voyages",
+    "Savings"
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newExpense.label || !newExpense.amount || !newExpense.category) return;
+    
+    const newFixedExpense: Omit<FixedExpense, 'id'> = {
+      amount: parseFloat(amount),
+      category,
+      label
+    };
 
-    addFixedExpense({
-      label: newExpense.label,
-      amount: newExpense.amount,
-      category: newExpense.category
-    });
+    addFixedExpense(newFixedExpense);
+    setAmount('');
+    setLabel('');
+  };
 
-    setNewExpense({
-      label: '',
-      amount: 0,
-      category: 'Vie quotidienne'
-    });
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette dépense fixe ?')) {
+      await deleteFixedExpense(id);
+    }
   };
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Dépenses Fixes</h2>
-        
-        <form onSubmit={handleSubmit} className="bg-gray-50 rounded-lg p-6 mb-8 border border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label htmlFor="label" className="block text-sm font-medium text-gray-700 mb-2">
-                Libellé
-              </label>
-              <input
-                type="text"
-                id="label"
-                value={newExpense.label}
-                onChange={(e) => setNewExpense(prev => ({ ...prev, label: e.target.value }))}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-                Montant
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  id="amount"
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense(prev => ({ ...prev, amount: Number(e.target.value) }))}
-                  min="0"
-                  step="0.01"
-                  required
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <span className="text-gray-600 font-medium">€</span>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                Catégorie
-              </label>
-              <select
-                id="category"
-                value={newExpense.category}
-                onChange={(e) => setNewExpense(prev => ({ ...prev, category: e.target.value as Category }))}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Abonnements & téléphonie">Abonnements & téléphonie</option>
-                <option value="Auto">Auto</option>
-                <option value="Autres dépenses">Autres dépenses</option>
-                <option value="Cadeaux & solidarité">Cadeaux & solidarité</option>
-                <option value="Éducation & famille">Éducation & famille</option>
-                <option value="Impôts & taxes">Impôts & taxes</option>
-                <option value="Logement">Logement</option>
-                <option value="Loisirs & sorties">Loisirs & sorties</option>
-                <option value="Retrait cash">Retrait cash</option>
-                <option value="Santé">Santé</option>
-                <option value="Services financiers & professionnels">Services financiers & professionnels</option>
-                <option value="Vie quotidienne">Vie quotidienne</option>
-                <option value="Voyages">Voyages</option>
-                <option value="Savings">Savings</option>
-              </select>
-            </div>
+    <div className="max-w-2xl mx-auto">
+      <div className="card">
+        <h2 className="text-xl font-semibold mb-4">Nouvelle Dépense Fixe</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="label" className="block text-sm font-medium text-gray-700 mb-1">
+              Label
+            </label>
+            <input
+              type="text"
+              id="label"
+              required
+              className="input"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+            />
           </div>
 
-          <div className="mt-6 flex justify-end">
+          <div>
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+              Montant (€)
+            </label>
+            <input
+              type="number"
+              id="amount"
+              step="0.01"
+              required
+              className="input"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              Catégorie
+            </label>
+            <select
+              id="category"
+              required
+              className="input"
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category)}
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end">
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="btn btn-primary"
             >
-              Ajouter
+              Ajouter la dépense fixe
             </button>
           </div>
         </form>
+      </div>
 
+      <div className="card mt-6">
+        <h2 className="text-xl font-semibold mb-4">Dépenses Fixes</h2>
         <div className="space-y-4">
-          {fixedExpenses.map(expense => (
-            <div key={expense.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-6">
-                  <span className="text-lg font-medium text-gray-800">{expense.label}</span>
-                  <span className="text-gray-600">{expense.category}</span>
-                  <span className="text-lg font-semibold text-gray-900">{expense.amount.toFixed(2)}€</span>
-                </div>
+          {fixedExpenses.map((expense) => (
+            <div key={expense.id} className="flex items-center justify-between p-4 bg-white rounded-lg shadow">
+              <div>
+                <h3 className="font-medium">{expense.label}</h3>
+                <p className="text-sm text-gray-500">{expense.category}</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="font-semibold">{expense.amount.toFixed(2)} €</span>
                 <button
-                  onClick={() => removeFixedExpense(expense.id)}
-                  className="px-3 py-1 text-sm text-red-600 hover:text-red-800 focus:outline-none"
+                  onClick={() => handleDelete(expense.id)}
+                  className="text-red-600 hover:text-red-900"
                 >
                   Supprimer
                 </button>
