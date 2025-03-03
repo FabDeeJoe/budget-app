@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBudget } from '../hooks/useBudget';
-import { Category } from '../types';
+import type { Category, Expense } from '../types/index';
 
 const NewExpense = () => {
   const navigate = useNavigate();
@@ -31,13 +31,14 @@ const NewExpense = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    addExpense({
+    const newExpense: Omit<Expense, 'id'> = {
       amount: parseFloat(amount),
       category,
       date,
-      description
-    });
+      description: description || undefined
+    };
 
+    addExpense(newExpense);
     navigate('/expenses');
   };
 

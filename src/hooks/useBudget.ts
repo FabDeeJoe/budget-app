@@ -1,27 +1,43 @@
 import { useState, useEffect } from 'react';
-import { Budget, Expense, BudgetState, FixedExpense } from '../types';
+import { Budget, Expense, BudgetState, FixedExpense, Category } from '../types/index';
+import { db } from '../config/firebase';
+import { 
+  collection, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  addDoc, 
+  deleteDoc,
+  query,
+  where,
+  getDocs,
+  updateDoc
+} from 'firebase/firestore';
 
-const STORAGE_KEY = 'budget_app_state';
+const CATEGORIES: Category[] = [
+  "Abonnements & téléphonie",
+  "Auto",
+  "Autres dépenses",
+  "Cadeaux & solidarité",
+  "Éducation & famille",
+  "Impôts & taxes",
+  "Logement",
+  "Loisirs & sorties",
+  "Retrait cash",
+  "Santé",
+  "Services financiers & professionnels",
+  "Vie quotidienne",
+  "Voyages",
+  "Savings"
+];
 
 const defaultBudget: Budget = {
   fixedAmount: 0,
   variableAmount: 0,
-  categoryBudgets: {
-    "Abonnements & téléphonie": 0,
-    "Auto": 0,
-    "Autres dépenses": 0,
-    "Cadeaux & solidarité": 0,
-    "Éducation & famille": 0,
-    "Impôts & taxes": 0,
-    "Logement": 0,
-    "Loisirs & sorties": 0,
-    "Retrait cash": 0,
-    "Santé": 0,
-    "Services financiers & professionnels": 0,
-    "Vie quotidienne": 0,
-    "Voyages": 0,
-    "Savings": 0
-  }
+  categoryBudgets: CATEGORIES.reduce((acc, category) => {
+    acc[category] = 0;
+    return acc;
+  }, {} as Record<Category, number>)
 };
 
 const defaultState: BudgetState = {
@@ -31,49 +47,142 @@ const defaultState: BudgetState = {
 };
 
 export const useBudget = () => {
-  const [state, setState] = useState<BudgetState>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : defaultState;
-  });
+  const [state, setState] = useState<BudgetState>(defaultState);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    const fetchData = async () => {
+      try {
+        // Récupérer le budget
+        const budgetDoc = await getDoc(doc(db, 'budget', 'current'));
+        const budgetData = budgetDoc.exists() ? budgetDoc.data() as Budget : defaultBudget;
 
-  const addExpense = (expense: Omit<Expense, 'id'>) => {
-    const newExpense: Expense = {
-      ...expense,
-      id: crypto.randomUUID()
+        // Récupérer les dépenses
+        const expensesQuery = query(collection(db, 'expenses'));
+        const expensesSnapshot = await getDocs(expensesQuery);
+        const expenses = expensesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Expense[];
+
+        // Récupérer les dépenses fixes
+        const fixedExpensesQuery = query(collection(db, 'fixedExpenses'));
+        const fixedExpensesSnapshot = await getDocs(fixedExpensesQuery);
+        const fixedExpenses = fixedExpensesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as FixedExpense[];
+
+        setState({
+          currentBudget: budgetData,
+          expenses,
+          fixedExpenses
+        });
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+      }
     };
-    setState(prev => ({
-      ...prev,
-      expenses: [...prev.expenses, newExpense]
-    }));
+
+    fetchData();
+  }, []);
+
+  const addExpense = async (expense: Omit<Expense, 'id'>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'expenses'), expense);
+      const newExpense: Expense = {
+        ...expense,
+        id: docRef.id
+      };
+      setState(prev => ({
+        ...prev,
+        expenses: [...prev.expenses, newExpense]
+      }));
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la dépense:', error);
+    }
   };
 
-  const addFixedExpense = (fixedExpense: Omit<FixedExpense, 'id'>) => {
-    const newFixedExpense: FixedExpense = {
-      ...fixedExpense,
-      id: crypto.randomUUID()
-    };
-    setState(prev => ({
-      ...prev,
-      fixedExpenses: [...prev.fixedExpenses, newFixedExpense]
-    }));
+  const updateExpense = async (id: string, updatedExpense: Omit<Expense, 'id'>) => {
+    try {
+      const expenseRef = doc(db, 'expenses', id);
+      await updateDoc(expenseRef, updatedExpense);
+      setState(prev => ({
+        ...prev,
+        expenses: prev.expenses.map(expense => 
+          expense.id === id ? { ...updatedExpense, id } : expense
+        )
+      }));
+    } catch (error) {
+      console.error('Error updating expense:', error);
+    }
   };
 
-  const removeFixedExpense = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      fixedExpenses: prev.fixedExpenses.filter(expense => expense.id !== id)
-    }));
+  const deleteExpense = async (id: string) => {
+    try {
+      const expenseRef = doc(db, 'expenses', id);
+      await deleteDoc(expenseRef);
+      setState(prev => ({
+        ...prev,
+        expenses: prev.expenses.filter(expense => expense.id !== id)
+      }));
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+    }
   };
 
-  const updateBudget = (budget: Budget) => {
-    setState(prev => ({
-      ...prev,
-      currentBudget: budget
-    }));
+  const addFixedExpense = async (fixedExpense: Omit<FixedExpense, 'id'>) => {
+    try {
+      const docRef = await addDoc(collection(db, 'fixedExpenses'), fixedExpense);
+      const newFixedExpense: FixedExpense = {
+        ...fixedExpense,
+        id: docRef.id
+      };
+      setState(prev => ({
+        ...prev,
+        fixedExpenses: [...prev.fixedExpenses, newFixedExpense]
+      }));
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la dépense fixe:', error);
+    }
+  };
+
+  const updateFixedExpense = async (id: string, updatedExpense: Omit<FixedExpense, 'id'>) => {
+    try {
+      const expenseRef = doc(db, 'fixedExpenses', id);
+      await updateDoc(expenseRef, updatedExpense);
+      setState(prev => ({
+        ...prev,
+        fixedExpenses: prev.fixedExpenses.map(expense => 
+          expense.id === id ? { ...updatedExpense, id } : expense
+        )
+      }));
+    } catch (error) {
+      console.error('Error updating fixed expense:', error);
+    }
+  };
+
+  const deleteFixedExpense = async (id: string) => {
+    try {
+      const expenseRef = doc(db, 'fixedExpenses', id);
+      await deleteDoc(expenseRef);
+      setState(prev => ({
+        ...prev,
+        fixedExpenses: prev.fixedExpenses.filter(expense => expense.id !== id)
+      }));
+    } catch (error) {
+      console.error('Error deleting fixed expense:', error);
+    }
+  };
+
+  const updateBudget = async (budget: Budget) => {
+    try {
+      await setDoc(doc(db, 'budget', 'current'), budget);
+      setState(prev => ({
+        ...prev,
+        currentBudget: budget
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du budget:', error);
+    }
   };
 
   const getExpensesByCategory = (category: string) => {
@@ -102,8 +211,11 @@ export const useBudget = () => {
     expenses: state.expenses,
     fixedExpenses: state.fixedExpenses,
     addExpense,
+    updateExpense,
+    deleteExpense,
     addFixedExpense,
-    removeFixedExpense,
+    updateFixedExpense,
+    deleteFixedExpense,
     updateBudget,
     getExpensesByCategory,
     getFixedExpensesByCategory,
