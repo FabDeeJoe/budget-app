@@ -3,6 +3,7 @@ import { useBudget } from '../hooks/useBudget';
 import type { Expense, Category } from '../types/index';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 
 const CATEGORIES: Category[] = [
   "Abonnements & téléphonie",
@@ -137,6 +138,12 @@ const ExpensesList = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Liste des Dépenses</h1>
+        <Link
+          to="/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          Nouvelle dépense
+        </Link>
       </div>
 
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
