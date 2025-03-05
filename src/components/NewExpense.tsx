@@ -35,7 +35,7 @@ const NewExpense = () => {
       amount: parseFloat(amount),
       category,
       date,
-      description: description || undefined
+      description: description || null
     };
 
     addExpense(newExpense);

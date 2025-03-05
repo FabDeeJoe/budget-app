@@ -19,7 +19,7 @@ export interface Expense {
   amount: number;
   category: Category;
   date: string;
-  description?: string;
+  description?: string | null;
 }
 
 export interface FixedExpense {
