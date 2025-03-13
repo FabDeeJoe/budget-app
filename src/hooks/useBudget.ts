@@ -110,8 +110,10 @@ export const useBudget = () => {
           expense.id === id ? { ...updatedExpense, id } : expense
         )
       }));
+      return true;
     } catch (error) {
       console.error('Error updating expense:', error);
+      throw error;
     }
   };
 
