@@ -38,7 +38,7 @@ export const useMonths = () => {
     fetchMonths();
   }, []);
 
-  const initializeNewMonth = async (month: string) => {
+  const initializeNewMonth = async (month: string): Promise<boolean> => {
     try {
       // Vérifier si le mois existe déjà
       const budgetDoc = await getDoc(doc(db, 'budgets', month));
@@ -86,6 +86,7 @@ export const useMonths = () => {
       // Mettre à jour la liste des mois disponibles
       setAvailableMonths(prev => [...prev, month].sort().reverse());
 
+      return true;
     } catch (error) {
       console.error('Erreur lors de l\'initialisation du nouveau mois:', error);
       throw error;
