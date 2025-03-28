@@ -1,16 +1,29 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState } from 'react';
+import { format } from 'date-fns';
 import CurrentBudget from './components/CurrentBudget';
 import ExpensesList from './components/ExpensesList';
 import NewExpense from './components/NewExpense';
 import CategoryBudgets from './components/CategoryBudgets';
 import FixedExpenses from './components/FixedExpenses';
+import MonthSelector from './components/MonthSelector';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), 'yyyy-MM'));
+  const [availableMonths] = useState<string[]>([selectedMonth]); // À remplacer par les données de Firestore
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+  };
+
+  const handleInitializeNewMonth = () => {
+    // À implémenter : initialisation d'un nouveau mois
+    console.log('Initialisation du nouveau mois:', selectedMonth);
   };
 
   return (
@@ -93,6 +106,15 @@ function App() {
         </nav>
 
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <MonthSelector
+              selectedMonth={selectedMonth}
+              onMonthChange={handleMonthChange}
+              onInitializeNewMonth={handleInitializeNewMonth}
+              availableMonths={availableMonths}
+            />
+          </div>
+
           <Routes>
             <Route path="/" element={<CurrentBudget />} />
             <Route path="/expenses" element={<ExpensesList />} />
