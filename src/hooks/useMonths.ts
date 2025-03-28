@@ -17,24 +17,24 @@ export const useMonths = () => {
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMonths = async () => {
-      try {
-        // Récupérer tous les mois disponibles à partir des budgets
-        const budgetsQuery = query(
-          collection(db, 'budgets'),
-          orderBy('month', 'desc')
-        );
-        const budgetsSnapshot = await getDocs(budgetsQuery);
-        const months = budgetsSnapshot.docs.map(doc => doc.id);
-        setAvailableMonths(months);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des mois:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchMonths = async () => {
+    try {
+      // Récupérer tous les mois disponibles à partir des budgets
+      const budgetsQuery = query(
+        collection(db, 'budgets'),
+        orderBy('month', 'desc')
+      );
+      const budgetsSnapshot = await getDocs(budgetsQuery);
+      const months = budgetsSnapshot.docs.map(doc => doc.id);
+      setAvailableMonths(months);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des mois:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMonths();
   }, []);
 
@@ -84,7 +84,7 @@ export const useMonths = () => {
       await Promise.all(fixedExpensesPromises);
 
       // Mettre à jour la liste des mois disponibles
-      setAvailableMonths(prev => [...prev, month].sort().reverse());
+      await fetchMonths();
 
       return true;
     } catch (error) {
@@ -96,6 +96,7 @@ export const useMonths = () => {
   return {
     availableMonths,
     isLoading,
-    initializeNewMonth
+    initializeNewMonth,
+    fetchMonths
   };
 }; 

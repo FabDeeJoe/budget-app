@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { migrateData } from '../scripts/migrateData';
+import { useMonth } from '../contexts/MonthContext';
 
 const DataMigration = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { fetchMonths } = useMonth();
 
   const handleMigration = async () => {
     setIsLoading(true);
@@ -13,6 +15,7 @@ const DataMigration = () => {
 
     try {
       await migrateData();
+      await fetchMonths();
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de la migration');

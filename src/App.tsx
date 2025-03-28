@@ -14,7 +14,7 @@ import { MonthProvider } from './contexts/MonthContext';
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), 'yyyy-MM'));
-  const { availableMonths, isLoading, initializeNewMonth } = useMonths();
+  const { availableMonths, isLoading, initializeNewMonth, fetchMonths } = useMonths();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -39,7 +39,8 @@ function App() {
         selectedMonth,
         availableMonths,
         isLoading,
-        initializeNewMonth
+        initializeNewMonth,
+        fetchMonths
       }}>
         <div className="min-h-screen bg-gray-50">
           <nav className="bg-white shadow-md">
