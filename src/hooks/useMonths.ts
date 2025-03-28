@@ -17,28 +17,28 @@ export const useMonths = () => {
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchMonths = async () => {
-    try {
-      // Récupérer tous les mois disponibles à partir des budgets
-      const budgetsQuery = query(
-        collection(db, 'budgets'),
-        orderBy('month', 'desc')
-      );
-      const budgetsSnapshot = await getDocs(budgetsQuery);
-      const months = budgetsSnapshot.docs.map(doc => doc.id);
-      setAvailableMonths(months);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des mois:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchMonths = async () => {
+      try {
+        // Récupérer tous les mois disponibles à partir des budgets
+        const budgetsQuery = query(
+          collection(db, 'budgets'),
+          orderBy('month', 'desc')
+        );
+        const budgetsSnapshot = await getDocs(budgetsQuery);
+        const months = budgetsSnapshot.docs.map(doc => doc.id);
+        setAvailableMonths(months);
+      } catch (error) {
+        console.error('Erreur lors de la récupération des mois:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchMonths();
   }, []);
 
-  const initializeNewMonth = async (month: string): Promise<boolean> => {
+  const initializeNewMonth = async (month: string) => {
     try {
       // Vérifier si le mois existe déjà
       const budgetDoc = await getDoc(doc(db, 'budgets', month));
@@ -84,9 +84,8 @@ export const useMonths = () => {
       await Promise.all(fixedExpensesPromises);
 
       // Mettre à jour la liste des mois disponibles
-      await fetchMonths();
+      setAvailableMonths(prev => [...prev, month].sort().reverse());
 
-      return true;
     } catch (error) {
       console.error('Erreur lors de l\'initialisation du nouveau mois:', error);
       throw error;
@@ -96,7 +95,6 @@ export const useMonths = () => {
   return {
     availableMonths,
     isLoading,
-    initializeNewMonth,
-    fetchMonths
+    initializeNewMonth
   };
 }; 

@@ -4,15 +4,14 @@ interface MonthContextType {
   selectedMonth: string;
   availableMonths: string[];
   isLoading: boolean;
-  initializeNewMonth: (month: string) => Promise<boolean>;
-  fetchMonths: () => Promise<void>;
+  initializeNewMonth: (month: string) => Promise<void>;
 }
 
-const MonthContext = createContext<MonthContextType | null>(null);
+const MonthContext = createContext<MonthContextType | undefined>(undefined);
 
 export const useMonth = () => {
   const context = useContext(MonthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useMonth must be used within a MonthProvider');
   }
   return context;

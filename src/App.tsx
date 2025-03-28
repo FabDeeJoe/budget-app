@@ -7,14 +7,13 @@ import NewExpense from './components/NewExpense';
 import CategoryBudgets from './components/CategoryBudgets';
 import FixedExpenses from './components/FixedExpenses';
 import MonthSelector from './components/MonthSelector';
-import DataMigration from './components/DataMigration';
 import { useMonths } from './hooks/useMonths';
 import { MonthProvider } from './contexts/MonthContext';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => format(new Date(), 'yyyy-MM'));
-  const { availableMonths, isLoading, initializeNewMonth, fetchMonths } = useMonths();
+  const { availableMonths, isLoading, initializeNewMonth } = useMonths();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -39,8 +38,7 @@ function App() {
         selectedMonth,
         availableMonths,
         isLoading,
-        initializeNewMonth,
-        fetchMonths
+        initializeNewMonth
       }}>
         <div className="min-h-screen bg-gray-50">
           <nav className="bg-white shadow-md">
@@ -120,30 +118,22 @@ function App() {
           </nav>
 
           <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            {!isLoading && availableMonths.length === 0 ? (
-              <div className="mb-6">
-                <DataMigration />
-              </div>
-            ) : (
-              <>
-                <div className="mb-6">
-                  <MonthSelector
-                    selectedMonth={selectedMonth}
-                    onMonthChange={handleMonthChange}
-                    onInitializeNewMonth={handleInitializeNewMonth}
-                    availableMonths={availableMonths}
-                  />
-                </div>
+            <div className="mb-6">
+              <MonthSelector
+                selectedMonth={selectedMonth}
+                onMonthChange={handleMonthChange}
+                onInitializeNewMonth={handleInitializeNewMonth}
+                availableMonths={availableMonths}
+              />
+            </div>
 
-                <Routes>
-                  <Route path="/" element={<CurrentBudget />} />
-                  <Route path="/expenses" element={<ExpensesList />} />
-                  <Route path="/new" element={<NewExpense />} />
-                  <Route path="/categories" element={<CategoryBudgets />} />
-                  <Route path="/fixed" element={<FixedExpenses />} />
-                </Routes>
-              </>
-            )}
+            <Routes>
+              <Route path="/" element={<CurrentBudget />} />
+              <Route path="/expenses" element={<ExpensesList />} />
+              <Route path="/new" element={<NewExpense />} />
+              <Route path="/categories" element={<CategoryBudgets />} />
+              <Route path="/fixed" element={<FixedExpenses />} />
+            </Routes>
           </main>
         </div>
       </MonthProvider>
