@@ -6,7 +6,8 @@ import {
   getDocs,
   setDoc,
   query,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'firebase/firestore';
 import { Budget, Expense, FixedExpense } from '../types';
 import { format } from 'date-fns';
@@ -31,26 +32,42 @@ export const migrateData = async () => {
     // 3. Récupérer toutes les dépenses
     const expensesQuery = query(collection(db, 'expenses'));
     const expensesSnapshot = await getDocs(expensesQuery);
-    const expensesPromises = expensesSnapshot.docs.map(doc => {
-      const data = doc.data() as Expense;
-      return updateDoc(doc.ref, {
-        month: currentMonth
-      });
+    
+    // Utiliser un batch pour les mises à jour des dépenses
+    const batch = writeBatch(db);
+    expensesSnapshot.docs.forEach(docSnapshot => {
+      const expenseRef = doc(db, 'expenses', docSnapshot.id);
+      batch.update(expenseRef, { month: currentMonth });
     });
-    await Promise.all(expensesPromises);
-    console.log(`${expensesPromises.length} dépenses migrées`);
+    
+    // Exécuter le batch pour les dépenses
+    if (expensesSnapshot.docs.length > 0) {
+      await batch.commit();
+      console.log(`${expensesSnapshot.docs.length} dépenses migrées`);
+    }
 
     // 4. Récupérer toutes les dépenses fixes
     const fixedExpensesQuery = query(collection(db, 'fixedExpenses'));
     const fixedExpensesSnapshot = await getDocs(fixedExpensesQuery);
-    const fixedExpensesPromises = fixedExpensesSnapshot.docs.map(doc => {
-      const data = doc.data() as FixedExpense;
-      return updateDoc(doc.ref, {
-        month: currentMonth
-      });
+    
+    // Utiliser un nouveau batch pour les mises à jour des dépenses fixes
+    const batchFixed = writeBatch(db);
+    fixedExpensesSnapshot.docs.forEach(docSnapshot => {
+      const fixedExpenseRef = doc(db, 'fixedExpenses', docSnapshot.id);
+      batchFixed.update(fixedExpenseRef, { month: currentMonth });
     });
-    await Promise.all(fixedExpensesPromises);
-    console.log(`${fixedExpensesPromises.length} dépenses fixes migrées`);
+    
+    // Exécuter le batch pour les dépenses fixes
+    if (fixedExpensesSnapshot.docs.length > 0) {
+      await batchFixed.commit();
+      console.log(`${fixedExpensesSnapshot.docs.length} dépenses fixes migrées`);
+    }
+
+    // 5. Vérifier que la migration s'est bien passée
+    const budgetVerifDoc = await getDoc(doc(db, 'budgets', currentMonth));
+    if (!budgetVerifDoc.exists()) {
+      throw new Error('La migration du budget a échoué');
+    }
 
     console.log('Migration terminée avec succès !');
     return true;

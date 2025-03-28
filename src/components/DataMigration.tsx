@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { migrateData } from '../scripts/migrateData';
 import { useMonth } from '../contexts/MonthContext';
+import { useNavigate } from 'react-router-dom';
 
 const DataMigration = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const { fetchMonths } = useMonth();
+  const navigate = useNavigate();
 
   const handleMigration = async () => {
     setIsLoading(true);
@@ -17,6 +19,12 @@ const DataMigration = () => {
       await migrateData();
       await fetchMonths();
       setSuccess(true);
+      
+      // Attendre un peu pour que l'utilisateur puisse voir le message de succès
+      setTimeout(() => {
+        // Forcer un rechargement de la page pour mettre à jour tous les états
+        window.location.reload();
+      }, 1500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue lors de la migration');
     } finally {
@@ -53,7 +61,7 @@ const DataMigration = () => {
         {success && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-md">
             <p className="text-green-600">
-              Migration terminée avec succès ! Vous pouvez maintenant utiliser le sélecteur de mois.
+              Migration terminée avec succès ! La page va se recharger automatiquement...
             </p>
           </div>
         )}
