@@ -1,8 +1,12 @@
 import { useBudget } from '../hooks/useBudget';
 import { Category } from '../types';
 import { Link } from 'react-router-dom';
+import { useMonth } from '../contexts/MonthContext';
+import { format, parse } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const CurrentBudget = () => {
+  const { selectedMonth } = useMonth();
   const { 
     budget, 
     getTotalExpenses, 
@@ -18,8 +22,12 @@ const CurrentBudget = () => {
   const remainingBudget = totalBudget - (totalExpenses + totalFixedExpenses);
   const remainingPercentage = (remainingBudget / totalBudget) * 100;
 
-  // Obtenir le mois en cours en français
-  const currentMonth = new Date().toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  // Formater le mois sélectionné en français
+  const formattedMonth = format(
+    parse(selectedMonth, 'yyyy-MM', new Date()),
+    'MMMM yyyy',
+    { locale: fr }
+  );
 
   // Grouper les catégories actives et inactives
   const activeCategories = categories.filter(category => {
@@ -57,7 +65,7 @@ const CurrentBudget = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Vue d'ensemble</h1>
-          <p className="text-lg text-gray-600">{currentMonth}</p>
+          <p className="text-lg text-gray-600">{formattedMonth}</p>
         </div>
         <Link
           to="/new"

@@ -20,6 +20,7 @@ export interface Expense {
   category: Category;
   date: string;
   description?: string | null;
+  month: string; // Format: 'yyyy-MM'
 }
 
 export interface FixedExpense {
@@ -27,6 +28,7 @@ export interface FixedExpense {
   label: string;
   amount: number;
   category: Category;
+  month: string; // Format: 'yyyy-MM'
 }
 
 export interface Budget {

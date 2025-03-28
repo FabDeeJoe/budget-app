@@ -10,8 +10,10 @@ import {
   deleteDoc,
   query,
   getDocs,
-  updateDoc
+  updateDoc,
+  where
 } from 'firebase/firestore';
+import { useMonth } from '../contexts/MonthContext';
 
 const CATEGORIES: Category[] = [
   "Abonnements & téléphonie",
@@ -47,24 +49,31 @@ const defaultState: BudgetState = {
 
 export const useBudget = () => {
   const [state, setState] = useState<BudgetState>(defaultState);
+  const { selectedMonth } = useMonth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Récupérer le budget
-        const budgetDoc = await getDoc(doc(db, 'budget', 'current'));
+        // Récupérer le budget du mois sélectionné
+        const budgetDoc = await getDoc(doc(db, 'budgets', selectedMonth));
         const budgetData = budgetDoc.exists() ? budgetDoc.data() as Budget : defaultBudget;
 
-        // Récupérer les dépenses
-        const expensesQuery = query(collection(db, 'expenses'));
+        // Récupérer les dépenses du mois sélectionné
+        const expensesQuery = query(
+          collection(db, 'expenses'),
+          where('month', '==', selectedMonth)
+        );
         const expensesSnapshot = await getDocs(expensesQuery);
         const expenses = expensesSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as Expense[];
 
-        // Récupérer les dépenses fixes
-        const fixedExpensesQuery = query(collection(db, 'fixedExpenses'));
+        // Récupérer les dépenses fixes du mois sélectionné
+        const fixedExpensesQuery = query(
+          collection(db, 'fixedExpenses'),
+          where('month', '==', selectedMonth)
+        );
         const fixedExpensesSnapshot = await getDocs(fixedExpensesQuery);
         const fixedExpenses = fixedExpensesSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -82,13 +91,17 @@ export const useBudget = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedMonth]);
 
   const addExpense = async (expense: Omit<Expense, 'id'>) => {
     try {
-      const docRef = await addDoc(collection(db, 'expenses'), expense);
-      const newExpense: Expense = {
+      const expenseWithMonth = {
         ...expense,
+        month: selectedMonth
+      };
+      const docRef = await addDoc(collection(db, 'expenses'), expenseWithMonth);
+      const newExpense: Expense = {
+        ...expenseWithMonth,
         id: docRef.id
       };
       setState(prev => ({
@@ -102,12 +115,16 @@ export const useBudget = () => {
 
   const updateExpense = async (id: string, updatedExpense: Omit<Expense, 'id'>) => {
     try {
+      const expenseWithMonth = {
+        ...updatedExpense,
+        month: selectedMonth
+      };
       const expenseRef = doc(db, 'expenses', id);
-      await updateDoc(expenseRef, updatedExpense);
+      await updateDoc(expenseRef, expenseWithMonth);
       setState(prev => ({
         ...prev,
         expenses: prev.expenses.map(expense => 
-          expense.id === id ? { ...updatedExpense, id } : expense
+          expense.id === id ? { ...expenseWithMonth, id } : expense
         )
       }));
       return true;
@@ -132,9 +149,13 @@ export const useBudget = () => {
 
   const addFixedExpense = async (fixedExpense: Omit<FixedExpense, 'id'>) => {
     try {
-      const docRef = await addDoc(collection(db, 'fixedExpenses'), fixedExpense);
-      const newFixedExpense: FixedExpense = {
+      const fixedExpenseWithMonth = {
         ...fixedExpense,
+        month: selectedMonth
+      };
+      const docRef = await addDoc(collection(db, 'fixedExpenses'), fixedExpenseWithMonth);
+      const newFixedExpense: FixedExpense = {
+        ...fixedExpenseWithMonth,
         id: docRef.id
       };
       setState(prev => ({
@@ -148,12 +169,16 @@ export const useBudget = () => {
 
   const updateFixedExpense = async (id: string, updatedExpense: Omit<FixedExpense, 'id'>) => {
     try {
+      const fixedExpenseWithMonth = {
+        ...updatedExpense,
+        month: selectedMonth
+      };
       const expenseRef = doc(db, 'fixedExpenses', id);
-      await updateDoc(expenseRef, updatedExpense);
+      await updateDoc(expenseRef, fixedExpenseWithMonth);
       setState(prev => ({
         ...prev,
         fixedExpenses: prev.fixedExpenses.map(expense => 
-          expense.id === id ? { ...updatedExpense, id } : expense
+          expense.id === id ? { ...fixedExpenseWithMonth, id } : expense
         )
       }));
     } catch (error) {
@@ -176,7 +201,7 @@ export const useBudget = () => {
 
   const updateBudget = async (budget: Budget) => {
     try {
-      await setDoc(doc(db, 'budget', 'current'), budget);
+      await setDoc(doc(db, 'budgets', selectedMonth), budget);
       setState(prev => ({
         ...prev,
         currentBudget: budget
@@ -222,6 +247,7 @@ export const useBudget = () => {
     getFixedExpensesByCategory,
     getTotalExpenses,
     getTotalFixedExpenses,
-    getRemainingBudget
+    getRemainingBudget,
+    CATEGORIES
   };
 }; 
