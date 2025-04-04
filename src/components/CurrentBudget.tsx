@@ -22,13 +22,6 @@ const CurrentBudget = () => {
   const remainingBudget = totalBudget - (totalExpenses + totalFixedExpenses);
   const remainingPercentage = (remainingBudget / totalBudget) * 100;
 
-  // Formater le mois sélectionné en français
-  const formattedMonth = format(
-    parse(selectedMonth, 'yyyy-MM', new Date()),
-    'MMMM yyyy',
-    { locale: fr }
-  );
-
   // Grouper les catégories actives et inactives
   const activeCategories = categories.filter(category => {
     const budgeted = budget.categoryBudgets[category];
@@ -62,18 +55,12 @@ const CurrentBudget = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vue d'ensemble</h1>
-          <p className="text-lg text-gray-600">{formattedMonth}</p>
-        </div>
-        <Link
-          to="/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Nouvelle dépense
-        </Link>
-      </div>
+      <Link
+        to="/new"
+        className="block w-full text-center px-4 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      >
+        Nouvelle dépense
+      </Link>
 
       <div className="card">
         <div className="space-y-2">

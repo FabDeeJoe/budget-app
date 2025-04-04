@@ -9,7 +9,7 @@ const NewExpense = () => {
   const { selectedMonth } = useMonth();
   const { addExpense, CATEGORIES } = useBudget();
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState<Category>(CATEGORIES[0]);
+  const [category, setCategory] = useState<Category>('Vie quotidienne');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,20 +44,6 @@ const NewExpense = () => {
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description (optionnelle)
-          </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            rows={3}
-            disabled={isSubmitting}
-          />
-        </div>
-
-        <div>
           <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
             Montant
           </label>
@@ -70,6 +56,21 @@ const NewExpense = () => {
             step="0.01"
             min="0"
             required
+            disabled={isSubmitting}
+            autoFocus
+          />
+        </div>
+
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            Description (optionnelle)
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            rows={3}
             disabled={isSubmitting}
           />
         </div>
