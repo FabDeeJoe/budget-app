@@ -1,12 +1,8 @@
 import { useBudget } from '../hooks/useBudget';
 import { Category } from '../types';
 import { Link } from 'react-router-dom';
-import { useMonth } from '../contexts/MonthContext';
-import { format, parse } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 const CurrentBudget = () => {
-  const { selectedMonth } = useMonth();
   const { 
     budget, 
     getTotalExpenses, 

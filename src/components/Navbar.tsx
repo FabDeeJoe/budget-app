@@ -7,6 +7,10 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { selectedMonth, availableMonths, onMonthChange, initializeNewMonth } = useMonth();
 
+  const handleInitializeNewMonth = () => {
+    initializeNewMonth(selectedMonth);
+  };
+
   return (
     <nav className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,7 +28,7 @@ const Navbar = () => {
               <MonthSelector
                 selectedMonth={selectedMonth}
                 onMonthChange={onMonthChange}
-                onInitializeNewMonth={initializeNewMonth}
+                onInitializeNewMonth={handleInitializeNewMonth}
                 availableMonths={availableMonths}
               />
             </div>
@@ -112,7 +116,7 @@ const Navbar = () => {
             <MonthSelector
               selectedMonth={selectedMonth}
               onMonthChange={onMonthChange}
-              onInitializeNewMonth={initializeNewMonth}
+              onInitializeNewMonth={handleInitializeNewMonth}
               availableMonths={availableMonths}
             />
           </div>
