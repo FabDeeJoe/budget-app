@@ -31,7 +31,8 @@ const CurrentBudget = () => {
 
   const inactiveCategories = categories.filter(category => !activeCategories.includes(category));
 
-  const getProgressColor = (progress: number) => {
+  const getProgressColor = (progress: number, remaining: number = 0) => {
+    if (remaining < 0) return 'bg-black';
     if (progress >= 90) return 'bg-budget-danger';
     if (progress >= 50) return 'bg-budget-warning';
     return 'bg-budget-success';
@@ -46,7 +47,9 @@ const CurrentBudget = () => {
       variableExpenses.reduce((sum, exp) => sum + exp.amount, 0) +
       fixedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
     const progress = (totalSpent / budgeted) * 100;
-    return { category, progress, budgeted, totalSpent };
+    const remaining = budgeted - totalSpent;
+    const remainingCatPercentage = (remaining / budgeted) * 100;
+    return { category, progress, budgeted, totalSpent, remaining, remainingCatPercentage };
   }).sort((a, b) => a.progress - b.progress);
 
   return (
@@ -68,7 +71,7 @@ const CurrentBudget = () => {
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
             <div
-              className={`h-2.5 rounded-full ${getProgressColor((totalExpenses + totalFixedExpenses) / totalBudget * 100)}`}
+              className={`h-2.5 rounded-full ${getProgressColor((totalExpenses + totalFixedExpenses) / totalBudget * 100, remainingBudget)}`}
               style={{ width: `${Math.min((totalExpenses + totalFixedExpenses) / totalBudget * 100, 100)}%` }}
             ></div>
           </div>
@@ -85,6 +88,12 @@ const CurrentBudget = () => {
           <p className="text-2xl font-bold text-budget-primary">{totalBudget.toFixed(2)} €</p>
         </div>
         <div className="card">
+          <h3 className="text-lg font-semibold mb-2">Reste à Dépenser</h3>
+          <p className={`text-2xl font-bold ${remainingBudget < 0 ? 'text-red-500 animate-pulse' : 'text-budget-success'}`}>
+            {remainingBudget.toFixed(2)} €
+          </p>
+        </div>
+        <div className="card">
           <h3 className="text-lg font-semibold mb-2">Dépenses Variables</h3>
           <p className="text-2xl font-bold text-budget-danger">{totalExpenses.toFixed(2)} €</p>
         </div>
@@ -93,12 +102,10 @@ const CurrentBudget = () => {
           <p className="text-2xl font-bold text-budget-warning">{totalFixedExpenses.toFixed(2)} €</p>
         </div>
         <div className="card">
-          <h3 className="text-lg font-semibold mb-2">Reste à Dépenser</h3>
-          <p className="text-2xl font-bold text-budget-success">{remainingBudget.toFixed(2)} €</p>
-        </div>
-        <div className="card">
           <h3 className="text-lg font-semibold mb-2">Pourcentage Restant</h3>
-          <p className="text-2xl font-bold text-budget-info">{remainingPercentage.toFixed(1)}%</p>
+          <p className={`text-2xl font-bold ${remainingPercentage < 0 ? 'text-red-500 animate-pulse' : 'text-budget-info'}`}>
+            {remainingPercentage.toFixed(1)}%
+          </p>
         </div>
       </div>
 
@@ -106,10 +113,7 @@ const CurrentBudget = () => {
         <h3 className="text-xl font-semibold mb-4">Détail par Catégorie</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Catégories actives */}
-          {sortedActiveCategories.map(({ category, progress, budgeted, totalSpent }) => {
-            const remaining = budgeted - totalSpent;
-            const remainingCatPercentage = (remaining / budgeted) * 100;
-
+          {sortedActiveCategories.map(({ category, progress, budgeted, totalSpent, remaining, remainingCatPercentage }) => {
             return (
               <div key={category} className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -120,13 +124,13 @@ const CurrentBudget = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
-                    className={`h-2.5 rounded-full ${getProgressColor(progress)}`}
+                    className={`h-2.5 rounded-full ${getProgressColor(progress, remaining)}`}
                     style={{ width: `${Math.min(progress, 100)}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between items-center text-sm text-gray-600">
-                  <span>Restant: {remaining.toFixed(2)} €</span>
-                  <span>{remainingCatPercentage.toFixed(1)}%</span>
+                  <span>Restant: <span className={remaining < 0 ? 'text-red-500 font-bold animate-pulse' : ''}>{remaining.toFixed(2)} €</span></span>
+                  <span className={remainingCatPercentage < 0 ? 'text-red-500 font-bold animate-pulse' : ''}>{remainingCatPercentage.toFixed(1)}%</span>
                 </div>
               </div>
             );
